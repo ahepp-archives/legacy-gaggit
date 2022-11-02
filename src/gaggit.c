@@ -12,6 +12,14 @@
 
 int boiler_init();
 int boiler_enable(int is_enabled);
+int boiler_guard(int tempc) {
+  if (tempc > ESTOP_TEMPERATURE) {
+    printf("boiler overheating\n");
+    boiler_enable(0);
+    exit(1);
+  }
+  return tempc;
+}
 int mcp9600_read();
 
 int main(int argc, char **argv) {
@@ -36,12 +44,7 @@ int main(int argc, char **argv) {
   pidc_create(&pidc, kp, ki, kd);
   printf("t,\tpv,\te,\tg\n");
   while (1) {
-    int pv = mcp9600_read();
-    if (pv > ESTOP_TEMPERATURE) {
-      printf("boiler overheating\n");
-      boiler_enable(0);
-      exit(1);
-    }
+    int pv = boiler_guard(mcp9600_read());
     int32_t e = sp - pv;
     int32_t gain = pidc_update(pidc, e);
     if (gain > 0)
