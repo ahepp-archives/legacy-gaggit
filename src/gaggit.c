@@ -64,11 +64,13 @@ int read_string_from_file(char *filepath, char *str) {
     return 1;
   }
   fscanf(fp, "%s", str);
+  fclose(fp);
   return 0;
 }
 
 int write_string_to_file(char *filepath, char *str) {
   int fd;
+  int ret = 0;
   fd = open(filepath, O_WRONLY);
   if (fd == -1) {
     printf("unable to open %s\n", filepath);
@@ -76,9 +78,10 @@ int write_string_to_file(char *filepath, char *str) {
   }
   if (write(fd, str, strlen(str)) != strlen(str)) {
     printf("error writing to %s\n", filepath);
-    return 1;
+    ret = 1;
   }
-  return 0;
+  close(fd);
+  return ret;
 }
 
 int boiler_enable(int is_enabled) {
