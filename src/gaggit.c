@@ -53,6 +53,7 @@ int main(int argc, char **argv) {
       boiler_enable(0);
 
     printf("%d,\t%d,\t%d,\t%d,\n", t, pv, e, gain);
+    fflush(stdout);
     sleep(1);
     ++t;
   }
