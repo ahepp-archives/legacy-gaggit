@@ -1,0 +1,3 @@
+[submodule "lib/pidc"]
+	path = lib/pidc
+	url = https://github.com/ahepp/pidc

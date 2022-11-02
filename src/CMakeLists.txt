@@ -1,0 +1,11 @@
+add_executable(gaggit
+        gaggit.c
+        )
+target_link_libraries(gaggit
+        PRIVATE
+        pidc
+        )
+target_compile_options(gaggit
+        PRIVATE
+        -Wall
+        )
