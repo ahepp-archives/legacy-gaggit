@@ -49,13 +49,13 @@ int main(int argc, char **argv) {
     int32_t gain = pidc_update(pidc, e);
     if (gain > 0)
       boiler_enable(1);
-    else
-      boiler_enable(0);
+    sleep(1);
+    boiler_enable(0);
 
     printf("%d,\t%d,\t%d,\t%d,\n", t, pv, e, gain);
     fflush(stdout);
-    sleep(1);
-    ++t;
+    sleep(4);
+    t += 5;
   }
 
   return 0;
