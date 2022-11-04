@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
   }
 
   t = 0;
-  pidc_create(&pidc, kp, ki, kd);
+  pidc_init(&pidc, kp, ki, kd);
   printf("t,\tpv,\te,\tg\n");
   while (1) {
     int pv = boiler_guard(mcp9600_read());
