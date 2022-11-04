@@ -5,7 +5,7 @@
 #include "pidc.h"
 #include "boiler.h"
 
-#define ESTOP_TEMPERATURE 150
+#define ESTOP_TEMPERATURE 2400
 
 int mcp9600_read();
 
@@ -36,8 +36,9 @@ int main(int argc, char **argv) {
       exit(1);
     }
 
+    /* multiplying 4 bit fixed points means we must rshift 4 */
     int32_t e = sp - pv;
-    int32_t gain = pidc_update(pidc, e);
+    int32_t gain = pidc_update(pidc, e) >> 4;
 
     if (gain > 0)
       boiler_enable(boiler, 1);
@@ -67,5 +68,5 @@ int read_string_from_file(char *filepath, char *str) {
 int mcp9600_read() {
   char str[255];
   read_string_from_file("/sys/bus/iio/devices/iio:device0/in_temp_raw", str);
-  return atoi(str) / 16;
+  return atoi(str);
 }
