@@ -1,5 +1,6 @@
 add_executable(gaggit
         gaggit.c
+        boiler.c
         )
 target_link_libraries(gaggit
         PRIVATE
