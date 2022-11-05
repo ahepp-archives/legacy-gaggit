@@ -8,6 +8,7 @@ RUN dpkg-reconfigure debconf -f noninteractive -p critical \
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
+        clang-format \
         cmake
 
 USER dev
