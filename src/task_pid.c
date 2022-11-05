@@ -30,6 +30,7 @@ void *pid_task(void *task_data) {
   struct timespec deadline;
   clock_gettime(CLOCK_MONOTONIC, &deadline);
   while (1) {
+    int cv;
     struct timespec done, to_sleep;
     timespec_acc(&deadline, &data->duration);
 
@@ -37,10 +38,19 @@ void *pid_task(void *task_data) {
     int32_t e = data->sp - pv;
     int32_t g = pidc_update(data->pidc, e) >> 4;
 
+    cv = g;
+    if (cv < 0)
+      cv = 0;
+    else if (cv < 50)
+      cv = 50;
+    else if (cv > 1000)
+      cv = 1000;
+
     pthread_mutex_lock(&data->state->lock);
     data->state->pv = pv;
     data->state->e = e;
     data->state->g = g;
+    data->state->cv = cv;
     pthread_mutex_unlock(&data->state->lock);
 
     clock_gettime(CLOCK_MONOTONIC, &done);

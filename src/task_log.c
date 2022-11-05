@@ -8,14 +8,14 @@
 void *log_task(void *task_data) {
   struct log_task_data *data = (struct log_task_data *)task_data;
 
-  printf("t,\tpv,\te,\tg\n");
+  printf("t,\tpv,\te,\tg,\tcv\n");
   struct timespec deadline;
   int s0 = 0;
 
   clock_gettime(CLOCK_MONOTONIC, &deadline);
   s0 = deadline.tv_sec;
   while (1) {
-    int s, ms, pv;
+    int s, ms, pv, cv;
     int32_t e, g;
     struct timespec done, to_sleep;
     timespec_acc(&deadline, &data->duration);
@@ -24,11 +24,12 @@ void *log_task(void *task_data) {
     pv = data->state->pv;
     e = data->state->e;
     g = data->state->g;
+    cv = data->state->cv;
     pthread_mutex_unlock(&data->state->lock);
 
     s = deadline.tv_sec - s0;
     ms = deadline.tv_nsec / (NS_PER_S / 1000);
-    printf("%d.%03d,\t%d,\t%d,\t%d\n", s, ms, pv, e, g);
+    printf("%d.%02d,\t%d,\t%d,\t%d,\t%d\n", s, ms, pv, e, g, cv);
     if (s % 5)
       fflush(stdout);
 

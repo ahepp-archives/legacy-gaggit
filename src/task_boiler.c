@@ -11,18 +11,29 @@ void *boiler_task(void *task_data) {
 
   clock_gettime(CLOCK_MONOTONIC, &deadline);
   while (1) {
-    int g;
+    int cv;
     struct timespec done, to_sleep;
     timespec_acc(&deadline, &data->duration);
 
     pthread_mutex_lock(&data->state->lock);
-    g = data->state->g;
+    cv = data->state->cv;
     pthread_mutex_unlock(&data->state->lock);
 
-    if (g > 0)
-      boiler_enable(data->boiler, 1);
-    else
+    if (cv == 0) {
       boiler_enable(data->boiler, 0);
+    } else {
+      boiler_enable(data->boiler, 1);
+
+      /*
+       * If over 800/1000, clamp to 1000
+       */
+      if (cv <= 800) {
+        int ns = cv * (NS_PER_S / 1000);
+        struct timespec duty_sleep = {.tv_sec = 0, .tv_nsec = ns};
+        nanosleep(&duty_sleep, NULL);
+        boiler_enable(data->boiler, 0);
+      }
+    }
 
     clock_gettime(CLOCK_MONOTONIC, &done);
     timespec_sub(&to_sleep, &deadline, &done);

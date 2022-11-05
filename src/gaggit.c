@@ -29,14 +29,12 @@ int main(int argc, char **argv) {
   pthread_mutex_init(&shared_state.lock, NULL);
 
   struct boiler_task_data boiler_data = {
-      .state = &shared_state,
-      .duration = {.tv_sec = 0, .tv_nsec = NS_PER_S / 10}};
+      .state = &shared_state, .duration = {.tv_sec = 1, .tv_nsec = 0}};
   boiler_init(&boiler_data.boiler, 14);
 
-  struct pid_task_data pid_data = {
-      .state = &shared_state,
-      .sp = sp,
-      .duration = {.tv_sec = 0, .tv_nsec = NS_PER_S / 10}};
+  struct pid_task_data pid_data = {.state = &shared_state,
+                                   .sp = sp,
+                                   .duration = {.tv_sec = 1, .tv_nsec = 0}};
   pidc_init(&pid_data.pidc, kp, ki, kd);
 
   struct log_task_data log_data = {.state = &shared_state,

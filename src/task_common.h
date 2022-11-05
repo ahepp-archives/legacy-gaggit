@@ -10,6 +10,7 @@
 struct gaggit_state {
   pthread_mutex_t lock;
   int pv;
+  int cv;
   int32_t e;
   int32_t g;
 };
