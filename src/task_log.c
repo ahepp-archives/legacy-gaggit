@@ -15,7 +15,7 @@ void *log_task(void *task_data) {
   clock_gettime(CLOCK_MONOTONIC, &deadline);
   s0 = deadline.tv_sec;
   while (1) {
-    int s, ms, pv, cv;
+    int s, cs, pv, cv;
     int32_t e, g;
     struct timespec done, to_sleep;
     timespec_acc(&deadline, &data->duration);
@@ -28,8 +28,8 @@ void *log_task(void *task_data) {
     pthread_mutex_unlock(&data->state->lock);
 
     s = deadline.tv_sec - s0;
-    ms = deadline.tv_nsec / (NS_PER_S / 1000);
-    printf("%d.%02d,\t%d,\t%d,\t%d,\t%d\n", s, ms, pv, e, g, cv);
+    cs = deadline.tv_nsec / (NS_PER_S / 1000);
+    printf("%d.%02d,\t%d,\t%d,\t%d,\t%d\n", s, cs, pv, e, g, cv);
     if (s % 5)
       fflush(stdout);
 
