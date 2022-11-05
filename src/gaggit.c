@@ -1,19 +1,20 @@
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 
-#include "pidc.h"
 #include "boiler.h"
+#include "pidc.h"
+#include "task_boiler.h"
+#include "task_common.h"
+#include "task_log.h"
+#include "task_pid.h"
 
 #define ESTOP_TEMPERATURE 2400
 
-int mcp9600_read();
-
 int main(int argc, char **argv) {
   int32_t sp, kp, ki, kd;
-  pidc_t *pidc;
-  boiler_t *boiler;
-  int t;
 
   if (argc != 5) {
     printf("usage: %s sp kp ki kd\n", argv[0]);
@@ -24,49 +25,30 @@ int main(int argc, char **argv) {
   ki = atoi(argv[3]);
   kd = atoi(argv[4]);
 
-  t = 0;
-  pidc_init(&pidc, kp, ki, kd);
-  boiler_init(&boiler, 14);
-  printf("t,\tpv,\te,\tg\n");
-  while (1) {
-    int pv = mcp9600_read();
-    if (pv > ESTOP_TEMPERATURE) {
-      printf("boiler overheating...\n");
-      boiler_enable(boiler, 0);
-      exit(1);
-    }
+  struct gaggit_state shared_state = {0};
+  pthread_mutex_init(&shared_state.lock, NULL);
 
-    /* multiplying 4 bit fixed points means we must rshift 4 */
-    int32_t e = sp - pv;
-    int32_t gain = pidc_update(pidc, e) >> 4;
+  struct boiler_task_data boiler_data = {
+      .state = &shared_state,
+      .duration = {.tv_sec = 0, .tv_nsec = NS_PER_S / 10}};
+  boiler_init(&boiler_data.boiler, 14);
 
-    if (gain > 0)
-      boiler_enable(boiler, 1);
-    sleep(1);
-    boiler_enable(boiler, 0);
+  struct pid_task_data pid_data = {
+      .state = &shared_state,
+      .sp = sp,
+      .duration = {.tv_sec = 0, .tv_nsec = NS_PER_S / 10}};
+  pidc_init(&pid_data.pidc, kp, ki, kd);
 
-    printf("%d,\t%d,\t%d,\t%d,\n", t, pv, e, gain);
-    fflush(stdout);
-    sleep(4);
-    t += 5;
-  }
+  struct log_task_data log_data = {.state = &shared_state,
+                                   .duration = {.tv_sec = 1, .tv_nsec = 0}};
 
+  pthread_t log_tid, pid_tid, boiler_tid;
+  pthread_create(&boiler_tid, NULL, &boiler_task, (void *)&boiler_data);
+  pthread_create(&log_tid, NULL, &log_task, (void *)&log_data);
+  pthread_create(&pid_tid, NULL, &pid_task, (void *)&pid_data);
+
+  pthread_join(boiler_tid, NULL);
+  pthread_join(log_tid, NULL);
+  pthread_join(pid_tid, NULL);
   return 0;
-}
-
-int read_string_from_file(char *filepath, char *str) {
-  FILE *fp = fopen(filepath, "r");
-  if (fp == NULL) {
-    printf("unable to open %s\n", filepath);
-    return 1;
-  }
-  fscanf(fp, "%s", str);
-  fclose(fp);
-  return 0;
-}
-
-int mcp9600_read() {
-  char str[255];
-  read_string_from_file("/sys/bus/iio/devices/iio:device0/in_temp_raw", str);
-  return atoi(str);
 }
