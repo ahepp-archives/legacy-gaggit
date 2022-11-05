@@ -29,6 +29,8 @@ void *log_task(void *task_data) {
     s = deadline.tv_sec - s0;
     ms = deadline.tv_nsec / (NS_PER_S / 1000);
     printf("%d.%03d,\t%d,\t%d,\t%d\n", s, ms, pv, e, g);
+    if (s % 5)
+      fflush(stdout);
 
     clock_gettime(CLOCK_MONOTONIC, &done);
     timespec_sub(&to_sleep, &deadline, &done);
