@@ -15,3 +15,5 @@ target_compile_options(gaggit
         PRIVATE
         -Wall
         )
+
+install(TARGETS gaggit DESTINATION bin)
